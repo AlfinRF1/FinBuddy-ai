@@ -19,7 +19,6 @@ app.post('/api/catat', async (req, res) => {
             return res.status(400).json({ error: "Pesan tidak boleh kosong ya bre!" });
         }
 
-        // Kita pakai gemini-pro yang stabil
         const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
         const prompt = `
@@ -40,15 +39,15 @@ app.post('/api/catat', async (req, res) => {
         const result = await model.generateContent(prompt);
         const responsAI = result.response.text();
         
-        // 1. KITA PRINT DULU BALASAN ASLINYA KE TERMINAL VS CODE
+       
         console.log("=== BALASAN DARI AI ===");
         console.log(responsAI);
         console.log("=======================");
 
-        // 2. KITA BERSIHKAN MARKDOWN (Biar nggak error)
+        
         let teksBersih = responsAI.replace(/```json/gi, '').replace(/```/gi, '').trim();
         
-        // 3. KITA UBAH JADI DATA JSON
+        
         const dataBersih = JSON.parse(teksBersih);
 
         res.json({
@@ -57,11 +56,11 @@ app.post('/api/catat', async (req, res) => {
         });
 
     } catch (error) {
-        // ERROR-NYA KITA KIRIM KE POSTMAN BIAR LU BISA BACA
+        
         console.error(error);
         res.status(500).json({ 
             error: "Waduh, servernya error bre.",
-            penyebab_asli: error.message // <--- Ini kunci buat nemuin masalahnya
+            penyebab_asli: error.message
         });
     }
 });

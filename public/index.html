@@ -71,7 +71,7 @@
                         <span class="bg-slate-200/60 text-slate-500 text-[10px] px-5 py-2 rounded-full font-bold uppercase tracking-[0.2em] backdrop-blur-sm">Live Financial Assistant</span>
                     </div>
 
-                    <!-- KATA SAMBUTAN YANG TADI HILANG BRE -->
+                    <!-- KATA SAMBUTAN -->
                     <div class="flex gap-5 animate-pop">
                         <div class="bg-gradient-to-br from-blue-100 to-blue-50 text-blue-600 rounded-full h-12 w-12 flex items-center justify-center text-xl flex-shrink-0 shadow-sm border border-blue-100 mt-1">
                             <i class="fa-solid fa-robot"></i>
@@ -195,7 +195,7 @@
             userInput.value = '';
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // 2. TAMBAHKAN LOADING STATE DI SINI BRE
+            
             const loadingId = 'loading-' + Date.now();
             chatBox.innerHTML += `
                 <div id="${loadingId}" class="flex gap-5 animate-pop items-center mt-2">
@@ -208,7 +208,6 @@
                 </div>
             `;
             chatBox.scrollTop = chatBox.scrollHeight;
-
             try {
                 const response = await fetch('/api/catat', {
                     method: 'POST',
@@ -237,7 +236,6 @@
                     `;
                 }
             } catch (error) { 
-                // Hapus loading kalau error biar nggak macet
                 if(document.getElementById(loadingId)) document.getElementById(loadingId).remove();
                 console.error(error); 
             }
