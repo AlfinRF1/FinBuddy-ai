@@ -1,7 +1,5 @@
 const express = require('express');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const fetch = require('node-fetch');
-const FormData = require('form-data');
 require('dotenv').config();
 
 const app = express();
@@ -24,16 +22,10 @@ app.use(express.static('public'));
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// ======================
-// CLEAN JSON
-// ======================
 const bersihinJSON = (text) => {
     return text.replace(/```json|```/gi, '').trim();
 };
 
-// ======================
-// ML FALLBACK
-// ======================
 const detectKategori = (text) => {
     text = text.toLowerCase();
 
@@ -63,38 +55,6 @@ const extractNominal = (text) => {
     return match ? parseInt(match[1]) : 0;
 };
 
-// ======================
-// AUDIO TRANSCRIBE (REAL 🔥)
-// ======================
-const transcribeAudio = async (filePath) => {
-    try {
-        const formData = new FormData();
-        formData.append('file', fs.createReadStream(filePath));
-        formData.append('model', 'whisper-1');
-
-        const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-            method: 'POST',
-            headers: {
-                Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-            },
-            body: formData
-        });
-
-        const data = await response.json();
-
-        if (!data.text) throw new Error("Transkrip kosong");
-
-        return data.text;
-
-    } catch (err) {
-        console.error("❌ TRANSCRIBE ERROR:", err);
-        return "";
-    }
-};
-
-// ======================
-// API
-// ======================
 app.post('/api/catat', upload.single('foto'), async (req, res) => {
     let file = req.file;
 
@@ -112,13 +72,10 @@ app.post('/api/catat', upload.single('foto'), async (req, res) => {
 
         let extractedText = teksUser;
 
-        // ======================
-        // FILE HANDLING
-        // ======================
         if (file) {
             const mime = file.mimetype;
+            console.log("📁 MIME:", mime);
 
-            // IMAGE
             if (mime.startsWith('image/')) {
                 const imageData = {
                     inlineData: {
@@ -128,13 +85,46 @@ app.post('/api/catat', upload.single('foto'), async (req, res) => {
                 };
 
                 const result = await model.generateContent([
-                    `Ekstrak transaksi ke JSON FinBuddy.`,
+`Analisis gambar ini.
+
+Jika ini adalah struk / transaksi:
+→ ekstrak ke JSON
+
+Jika BUKAN transaksi:
+→ jawab:
+{
+"error": "bukan_transaksi"
+}
+
+Format WAJIB JSON.`,
                     imageData
                 ]);
 
-                const text = bersihinJSON(result.response.text());
+                let text = bersihinJSON(result.response.text());
+                console.log("🧾 RAW AI:", text);
 
-                const data = JSON.parse(text);
+                let data;
+
+                try {
+                    data = JSON.parse(text);
+
+                    if (data.error === "bukan_transaksi") {
+                        return res.json({
+                            status: "error",
+                            message: "Ini bukan struk / transaksi bro 😅"
+                        });
+                    }
+
+                } catch (err) {
+                    console.log("❌ PARSE ERROR:", err);
+
+                    data = {
+                        jenis_transaksi: detectJenis(text),
+                        kategori: detectKategori(text),
+                        nominal: extractNominal(text),
+                        pesan_finbuddy: "Gambar agak aneh bro, tapi gua coba catat 😎"
+                    };
+                }
 
                 return res.json({
                     status: "sukses",
@@ -142,45 +132,51 @@ app.post('/api/catat', upload.single('foto'), async (req, res) => {
                 });
             }
 
-            // AUDIO 🔥
             else if (mime.startsWith('audio/')) {
-                const hasilText = await transcribeAudio(file.path);
+                const audioData = {
+                    inlineData: {
+                        data: fs.readFileSync(file.path).toString("base64"),
+                        mimeType: mime,
+                    },
+                };
 
-                if (!hasilText) {
+                const result = await model.generateContent([
+                    "Transkripsikan audio ini ke teks Bahasa Indonesia.",
+                    audioData
+                ]);
+
+                const transcript = result.response.text();
+
+                if (!transcript) {
                     return res.status(400).json({
                         status: "error",
                         message: "Audio gagal dibaca bro 😢"
                     });
                 }
 
-                console.log("🎧 HASIL AUDIO:", hasilText);
-                extractedText += " " + hasilText;
+                console.log("🎧 AUDIO:", transcript);
+                extractedText += " " + transcript;
             }
 
-            // PDF
             else if (mime === 'application/pdf') {
                 const buffer = fs.readFileSync(file.path);
                 const pdfData = await pdfParse(buffer);
                 extractedText += " " + pdfData.text;
             }
 
-            // DOCX
             else if (mime.includes('wordprocessingml')) {
                 const resultDoc = await mammoth.extractRawText({ path: file.path });
                 extractedText += " " + resultDoc.value;
             }
 
-            // TXT
             else if (mime === 'text/plain') {
                 extractedText += " " + fs.readFileSync(file.path, 'utf-8');
             }
         }
 
-        console.log("🧠 TEXT FINAL:", extractedText);
+        console.log("🧠 FINAL TEXT:", extractedText);
 
-        // ======================
-        // AI PROCESS
-        // ======================
+
         const prompt = `
 Kamu FinBuddy AI.
 
@@ -199,12 +195,14 @@ Input:
         const result = await model.generateContent(prompt);
         const text = bersihinJSON(result.response.text());
 
+        console.log("🧾 TEXT AI:", text);
+
         let data;
 
         try {
             data = JSON.parse(text);
-        } catch {
-            console.log("⚠️ AI ERROR → fallback ML");
+        } catch (err) {
+            console.log("AI ERROR → fallback jalan");
 
             data = {
                 jenis_transaksi: detectJenis(extractedText),
@@ -214,9 +212,6 @@ Input:
             };
         }
 
-        // ======================
-        // VALIDASI FINAL
-        // ======================
         data.nominal = parseInt(data.nominal) || extractNominal(extractedText) || 0;
         data.kategori = data.kategori || detectKategori(extractedText);
         data.jenis_transaksi = data.jenis_transaksi || detectJenis(extractedText);
@@ -236,16 +231,12 @@ Input:
         });
 
     } finally {
-        // ======================
-        // CLEAN FILE
-        // ======================
         if (file && fs.existsSync(file.path)) {
             fs.unlinkSync(file.path);
         }
     }
 });
 
-// ======================
 app.listen(port, () => {
     console.log(`🚀 Server jalan di http://localhost:${port}`);
 });
