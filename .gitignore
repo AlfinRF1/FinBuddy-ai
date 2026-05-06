@@ -1,0 +1,21 @@
+# ENV (SANGAT PENTING 🔥)
+.env
+
+# Node modules
+node_modules/
+
+# Upload files (multer)
+uploads/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build / cache
+dist/
+.cache/
