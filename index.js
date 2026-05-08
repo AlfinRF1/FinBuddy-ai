@@ -3,8 +3,11 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 import dotenv from 'dotenv';
 import multer from 'multer';
 import fs from 'fs';
-import pdfParse from 'pdf-parse';
 import mammoth from 'mammoth';
+
+import { createRequire } from 'module';
+const require = createRequire(import.meta.url);
+const pdfParse = require('pdf-parse');
 
 dotenv.config();
 
@@ -24,7 +27,7 @@ app.use(express.static('public'));
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const model = genAI.getGenerativeModel({ 
-    model: "gemini-1.5-flash",
+    model: "gemini-2.5-flash",
     generationConfig: {
         temperature: 0.7, 
         topK: 40,        

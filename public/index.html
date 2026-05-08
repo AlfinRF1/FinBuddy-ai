@@ -92,6 +92,10 @@
                         <button onclick="kirimCepat('💰 Gajian masuk 3 juta')" class="flex-shrink-0 bg-white border border-green-200 hover:bg-green-50 px-4 py-2 rounded-full text-xs font-bold transition-all">💰 Gajian +3jt</button>
                         <button onclick="kirimCepat('🛵 Isi bensin 20rb')" class="flex-shrink-0 bg-white border border-slate-200 hover:bg-blue-50 px-4 py-2 rounded-full text-xs font-bold transition-all">🛵 Bensin -20rb</button>
                     </div>
+                    <div id="file-preview-container" class="hidden mb-4 flex gap-2 transition-all">
+                        <div id="file-preview-content" class="relative inline-block bg-white p-2 rounded-xl border border-slate-200 shadow-sm animate-pop mt-2 mr-2 ml-2">
+                            </div>
+                    </div>
                     <form id="chat-form" class="flex gap-4 relative items-center w-full max-w-4xl" enctype="multipart/form-data">
                     
                     <input type="file" id="file-input" class="hidden"
@@ -198,9 +202,6 @@ const formatRupiah = (angka) =>
         minimumFractionDigits: 0
     }).format(angka);
 
-// ======================
-// DASHBOARD
-// ======================
 const updateDashboard = () => {
     totalPemasukanEl.innerText = formatRupiah(totalMasuk);
     totalPengeluaranEl.innerText = formatRupiah(totalKeluar);
@@ -216,9 +217,6 @@ const updateDashboard = () => {
     renderTables();
 };
 
-// ======================
-// TABLE
-// ======================
 const renderTables = () => {
     const incomeHtml = riwayat
         .filter(t => t.jenis === 'Pemasukan')
@@ -254,21 +252,15 @@ window.kirimCepat = (teks) => {
     btnKirim.click();
 };
 
-// ======================
-// VALIDASI FILE
-// ======================
 const validateFile = (file) => {
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    const maxSize = 5 * 1024 * 1024;
     if (file.size > maxSize) {
-        alert("File maksimal 5MB bro!");
+        alert("File maksimal 5MB!");
         return false;
     }
     return true;
 };
 
-// ======================
-// SUBMIT
-// ======================
 chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
 
@@ -280,9 +272,6 @@ chatForm.addEventListener('submit', async (e) => {
 
     btnKirim.disabled = true;
 
-    // ======================
-    // USER TEXT
-    // ======================
     if (pesan) {
         chatBox.innerHTML += `
         <div class="flex justify-end animate-pop">
@@ -292,9 +281,6 @@ chatForm.addEventListener('submit', async (e) => {
         </div>`;
     }
 
-    // ======================
-    // FILE PREVIEW
-    // ======================
     if (file) {
         const type = file.type;
         const url = URL.createObjectURL(file);
@@ -309,9 +295,7 @@ chatForm.addEventListener('submit', async (e) => {
         else if (type.startsWith('audio/')) {
             chatBox.innerHTML += `
             <div class="flex justify-end animate-pop">
-                <audio controls class="max-w-[220px]">
-                    <source src="${url}" type="${type}">
-                </audio>
+                <audio controls src="${url}" class="max-w-[220px] bg-slate-50 rounded-full"></audio>
             </div>`;
         }
 
@@ -328,9 +312,6 @@ chatForm.addEventListener('submit', async (e) => {
     userInput.value = '';
     chatBox.scrollTop = chatBox.scrollHeight;
 
-    // ======================
-    // LOADING
-    // ======================
     const loadingId = 'loading-' + Date.now();
     chatBox.innerHTML += `
     <div id="${loadingId}" class="flex gap-3 items-center">
@@ -399,10 +380,47 @@ chatForm.addEventListener('submit', async (e) => {
 
     chatBox.scrollTop = chatBox.scrollHeight;
     fileInput.value = '';
+    window.hapusFile();
     btnKirim.disabled = false;
 });
 
 updateDashboard();
+
+const filePreviewContainer = document.getElementById('file-preview-container');
+const filePreviewContent = document.getElementById('file-preview-content');
+
+fileInput.addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file) {
+        window.hapusFile();
+        return;
+    }
+
+    const type = file.type;
+    const url = URL.createObjectURL(file);
+    let innerHtml = '';
+
+    const btnHapus = `<button type="button" onclick="window.hapusFile(event)" class="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center text-[10px] hover:scale-110 shadow-md transition-transform"><i class="fa-solid fa-times"></i></button>`;
+
+    if (type.startsWith('image/')) {
+        innerHtml = `<img src="${url}" class="h-16 w-16 object-cover rounded-lg border border-slate-100">${btnHapus}`;
+    } else if (type.startsWith('audio/')) {
+        innerHtml = `<div class="flex items-center gap-3 h-16 px-4 bg-green-50 rounded-lg border border-green-100"><i class="fa-solid fa-file-audio text-2xl text-green-500"></i><span class="text-xs font-bold text-green-700 truncate max-w-[120px]">${file.name}</span></div>${btnHapus}`;
+    } else {
+        innerHtml = `<div class="flex items-center gap-3 h-16 px-4 bg-purple-50 rounded-lg border border-purple-100"><i class="fa-solid fa-file-lines text-2xl text-purple-500"></i><span class="text-xs font-bold text-purple-700 truncate max-w-[120px]">${file.name}</span></div>${btnHapus}`;
+    }
+
+    filePreviewContent.innerHTML = innerHtml;
+    filePreviewContainer.classList.remove('hidden');
+});
+
+window.hapusFile = (event) => {
+    if(event) event.preventDefault();
+    
+    fileInput.value = '';
+    filePreviewContainer.classList.add('hidden');
+    filePreviewContent.innerHTML = '';
+};
 </script>
 </body>
 </html>
