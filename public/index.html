@@ -349,7 +349,7 @@ chatForm.addEventListener('submit', async (e) => {
         formData.append('pesan', pesan);
         if (file) formData.append('foto', file);
 
-        const response = await fetch('/api/catat', {
+        const response = await fetch('/api/chat', {
             method: 'POST',
             body: formData
         });

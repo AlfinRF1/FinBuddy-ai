@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard</title>
+  <!-- Include Tailwind CSS from CDN -->
+  <link href='https://cdn.jsdelivr.net/npm/tailwindcss@2.4.6/dist/tailwind.min.css' rel='stylesheet'>
+</head>
+<body class="bg-gray-100 font-sans">
+
+  <nav class="bg-white shadow-lg sticky top-0 w-full">
+    <div class="max-w-7xl mx-auto px-5">
+      <div class="flex justify-between h-16 items-center py-4">
+        <span class="text-3xl font-extrabold text-gray-900">Dashboard</span>
+        <button class="mr-3.5 text-sm font-medium text-gray-700 hover:text-gray-900 my-2 px-3 py-2 rounded-md border border-gray-400 hover:bg-white">
+          Logout
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto mt-5 px-6 sm:px-8 lg:px-10">
+    <h2 class="text-3xl font-bold text-gray-900 mb-6">Overview</h2>
+
+    <div class="grid grid-cols-2 gap-x-4">
+      <!-- Card 1 -->
+      <div class="bg-white rounded-lg shadow overflow-hidden max-w-xs p-4 flex flex-col items-center justify-between">
+        <span class="text-sm font-medium text-gray-500">Total Sales</span>
+        <h3 class="mt-1 text-2xl font-bold">$1,050.00</h3>
+        <p class="text-xs mt-3 text-primary-600">
+          Compared to last month
+        </p>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="bg-white rounded-lg shadow overflow-hidden max-w-xs p-4 flex flex-col items-center justify-between">
+        <span class="text-sm font-medium text-gray-500">Total Customers</span>
+        <h3 class="mt-1 text-2xl font-bold">78</h3>
+        <p class="text-xs mt-3 text-teal-600">
+          Increased by 49%
+        </p>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="bg-white rounded-lg shadow overflow-hidden max-w-xs p-4 flex flex-col items-center justify-between">
+        <span class="text-sm font-medium text-gray-500">Pending Orders</span>
+        <h3 class="mt-1 text-2xl font-bold">23</h3>
+        <p class="text-xs mt-3 text-red-600">
+          Need to be processed
+        </p>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="bg-white rounded-lg shadow overflow-hidden max-w-xs p-4 flex flex-col items-center justify-between">
+        <span class="text-sm font-medium text-gray-500">Average Order Value</span>
+        <h3 class="mt-1 text-2xl font-bold">$46.00</h3>
+        <p class="text-xs mt-3 text-gray-600"></p>
+      </div>
+
+    </div>
+
+  </div>
+
+</body>
+</html>
